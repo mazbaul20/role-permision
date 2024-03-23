@@ -52,7 +52,7 @@ class UserController extends Controller
             'name' => 'required|max:80',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            // 'roles' => 'required',
+            'roles' => 'required',
         ]);
         $user = User::create([
             'name' => $request->name,
@@ -85,8 +85,8 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::latest()->get();
-        
-        return view('user.edit', compact('user','roles'));
+        $data = $user->roles()->pluck('id')->toArray();
+        return view('user.edit', compact('user','roles','data'));
     }
 
     /**
@@ -110,13 +110,15 @@ class UserController extends Controller
             'email' => $request->email,
             'status' => $request->status,
         ]);
+
         $user->syncRoles($request->roles);
+
         if($request->has('password')){
             $user->update(['password' => bcrypt('password')]);
         }
 
         session()->flash('success', 'User updated successfully');
-        return back();
+        return redirect()->back();
     }
 
     /**
